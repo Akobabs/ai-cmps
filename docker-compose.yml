@@ -1,0 +1,36 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aicmps-backend
+    environment:
+      - DATABASE_URL=sqlite:////data/ai_cmps.db
+    volumes:
+      - db_data:/data          # SQLite database persists across restarts
+    ports:
+      - "8000:8000"            # Expose API directly (for docs/testing)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aicmps-frontend
+    ports:
+      - "80:80"                # Main app at http://localhost
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
