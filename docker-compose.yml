@@ -4,6 +4,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: aaademola/ai-cmps-backend:latest
     container_name: aicmps-backend
     environment:
       - DATABASE_URL=sqlite:////data/ai_cmps.db
@@ -23,6 +24,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: aaademola/ai-cmps-frontend:latest
     container_name: aicmps-frontend
     ports:
       - "80:80"                # Main app at http://localhost
