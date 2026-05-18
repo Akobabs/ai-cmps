@@ -8,7 +8,7 @@ A functional MVP demonstrating the research system described in:
 ## Table of Contents
 
 - [Overview](#overview)
-- [Quick Start](#quick-start)
+- [Quick Start](#quick-start) — Pull from Docker Hub · Build from source · Local dev
 - [Demo Accounts](#demo-accounts)
 - [System Architecture](#system-architecture)
 - [Core Algorithm](#core-algorithm)
@@ -35,10 +35,52 @@ The system:
 
 ## Quick Start
 
-### Option A — Docker (recommended)
+### Option A — Pull from Docker Hub (fastest, no build required)
+
+Requires only Docker Desktop — no code checkout needed.
+
+**1. Download the `docker-compose.yml`** (or copy it from this repo):
+
+```yaml
+# docker-compose.yml
+services:
+  backend:
+    image: aaademola/ai-cmps-backend:latest
+    container_name: aicmps-backend
+    environment:
+      - DATABASE_URL=sqlite:////data/ai_cmps.db
+    volumes:
+      - db_data:/data
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    image: aaademola/ai-cmps-frontend:latest
+    container_name: aicmps-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
+```
+
+**2. Pull and start:**
 
 ```powershell
-docker compose up --build
+docker compose pull
+docker compose up
 ```
 
 | Service | URL |
@@ -47,7 +89,7 @@ docker compose up --build
 | API docs (Swagger) | http://localhost:8000/docs |
 | API docs (ReDoc) | http://localhost:8000/redoc |
 
-The database is auto-seeded with 5 demo users and 42 articles on first run.
+The database is auto-seeded with 5 demo users and 42 articles on first run. Allow ~30 seconds on the very first start for seeding to complete.
 
 **Stop:**
 ```powershell
@@ -57,10 +99,28 @@ docker compose down
 **Reset database (fresh seed):**
 ```powershell
 docker compose down -v
+docker compose up
+```
+
+---
+
+### Option B — Docker (build from source)
+
+Clone the repo first, then:
+
+```powershell
 docker compose up --build
 ```
 
-### Option B — Local Development
+**Reset database:**
+```powershell
+docker compose down -v
+docker compose up --build
+```
+
+---
+
+### Option C — Local Development
 
 Requires Python 3.12+ and Node.js 20+. See [backend/README.md](backend/README.md) and [frontend/README.md](frontend/README.md) for full setup.
 
