@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const api = axios.create({ baseURL: 'http://localhost:8000' })
+// In dev: Vite proxy forwards /api → localhost:8000
+// In Docker: Nginx proxy forwards /api → backend:8000
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || '' })
 
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token')
