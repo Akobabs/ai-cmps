@@ -1,11 +1,20 @@
 """Seed the database with demo content, users and interaction histories."""
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.database import SessionLocal, engine
-from app import models, nlp_module
-from app.auth import hash_password
+# Allow running as script (python backend/app/seed_data.py) or as module (python -m app.seed_data)
+_parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _parent not in sys.path:
+    sys.path.insert(0, _parent)
+
+try:
+    from app.database import SessionLocal, engine
+    from app import models, nlp_module
+    from app.auth import hash_password
+except ModuleNotFoundError:
+    from .database import SessionLocal, engine
+    from . import models, nlp_module
+    from .auth import hash_password
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -1186,7 +1195,10 @@ def seed():
             ).count()
             profile = []
             if count > 0:
-                from app.recommender import build_user_profile_vector
+                try:
+                    from app.recommender import build_user_profile_vector
+                except ModuleNotFoundError:
+                    from .recommender import build_user_profile_vector
                 profile = build_user_profile_vector(u, db)
             db.query(models.User).filter(models.User.id == u.id).update({
                 "interaction_count": count,
